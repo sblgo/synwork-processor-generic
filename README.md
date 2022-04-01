@@ -16,6 +16,7 @@ synwork {
 
 Find out more details create a minimal configuration file generic.snw with this required processor,
 go in this directory and
->>> synwork init
->>> synwork help -p generic
+>  \> synwork init
+
+>  \> synwork help -p generic
 
