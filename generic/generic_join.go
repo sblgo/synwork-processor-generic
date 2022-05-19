@@ -2,8 +2,6 @@ package generic
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"sbl.systems/go/synwork/plugin-sdk/schema"
 )
@@ -14,6 +12,23 @@ import (
 // 	left_field = "la"
 // 	right_field = "ra"
 // }
+
+var LeftRightSchema = &schema.Schema{
+	Type:     schema.TypeList,
+	Required: true,
+	Elem: map[string]*schema.Schema{
+		"left": {
+			Type:        schema.TypeGeneric,
+			Required:    true,
+			Description: "entry of the left side ",
+		},
+		"right": {
+			Type:        schema.TypeGeneric,
+			Required:    true,
+			Description: "entry of the right side ",
+		},
+	},
+}
 
 var Method_generic_join = &schema.Method{
 	Schema: map[string]*schema.Schema{
@@ -48,22 +63,7 @@ var Method_generic_join = &schema.Method{
 		},
 	},
 	Result: map[string]*schema.Schema{
-		"join": {
-			Type:     schema.TypeList,
-			Required: true,
-			Elem: map[string]*schema.Schema{
-				"left": {
-					Type:        schema.TypeGeneric,
-					Required:    true,
-					Description: "entry of the left side after join",
-				},
-				"right": {
-					Type:        schema.TypeGeneric,
-					Required:    true,
-					Description: "entry of the right side after join",
-				},
-			},
-		},
+		"join": LeftRightSchema,
 	},
 	Description: `compares each element of the left side list with each element on the right side list and 
 	gives a result list back. The enttities have two fields: "left" and "right"
@@ -103,46 +103,4 @@ func generic_join(ctx context.Context, data *schema.MethodData, client interface
 
 	data.SetResult("join", result)
 	return nil
-}
-
-type (
-	JoinKeyEntry struct {
-		Name  string
-		Value interface{}
-	}
-	JoinKey struct {
-		Key string
-	}
-	KeyEntryBuilder func(m map[string]interface{}) JoinKeyEntry
-
-	KeyBuilder struct {
-		KeyFieldBuilder []KeyEntryBuilder
-	}
-)
-
-func (kb *KeyBuilder) Build(m map[string]interface{}) JoinKey {
-	key := ""
-	for _, k := range kb.KeyFieldBuilder {
-		field := k(m)
-		key = fmt.Sprintf("%s<%v>", key, field.Value)
-	}
-	return JoinKey{Key: key}
-}
-
-func (kb *KeyBuilder) Add(b KeyEntryBuilder) {
-	if kb.KeyFieldBuilder == nil {
-		kb.KeyFieldBuilder = []KeyEntryBuilder{}
-	}
-	kb.KeyFieldBuilder = append(kb.KeyFieldBuilder, b)
-}
-
-func newKeyFieldBuilder(path string) KeyEntryBuilder {
-	pathParts := strings.Split(strings.Trim(path, "/"), "/")
-	return func(m map[string]interface{}) JoinKeyEntry {
-		value, _ := schema.GetValueMap(m, pathParts)
-		return JoinKeyEntry{
-			Name:  path,
-			Value: value,
-		}
-	}
 }
