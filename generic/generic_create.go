@@ -19,7 +19,7 @@ var Method_generic_create = &schema.Method{
 					Description: "the name of the new attribute in the result",
 				},
 				"data": {
-					Type:        schema.TypeString,
+					Type:        schema.TypeGeneric,
 					Required:    true,
 					Description: "reference to an result of a other processor",
 				},
